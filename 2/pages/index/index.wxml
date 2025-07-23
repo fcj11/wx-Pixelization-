@@ -1,0 +1,192 @@
+<!--index.wxml-->
+<view class="container">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="title">拼豆底稿生成器</text>
+    <text class="subtitle">上传图片，选择色板，生成带色号的图纸和统计</text>
+  </view>
+  <!-- 上传区域 -->
+  <view class="upload-area" bindtap="chooseImage">
+    <view class="upload-content" wx:if="{{!tempImagePath}}">
+      <text class="iconfont icon-upload"></text>
+      <text class="upload-text">拖放图片到此处，或点击选择文件</text>
+      <text class="upload-tip">支持 JPG, PNG 格式</text>
+    </view>
+    <image wx:else class="preview-image" src="{{tempImagePath}}" mode="aspectFit" style="height: 400rpx;"></image>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="tip-box">
+    <text class="iconfont icon-info"></text>
+    <text class="tip-text">小贴士：使用像素图进行转换前，请确保图片的边缘吻合像素格子的边界线，这样可以获得更精确的切割效果和更好的成品。</text>
+  </view>
+
+  <!-- 用于图片处理的canvas -->
+  <canvas type="2d" id="processCanvas" style="width: 0px; height: 0px;" canvas-id="processCanvas"></canvas>
+
+  <!-- 控制面板 -->
+  <view class="control-panel" wx:if="{{tempImagePath}}">
+    <!-- 像素大小设置 -->
+    <view class="control-group">
+      <text class="label">像素大小</text>
+      <slider min="4" max="32" step="4" value="{{pixelSize}}" show-value block-size="20" activeColor="#6366f1" backgroundColor="#e5e7eb" bindchanging="onPixelSizeChange"/>
+    </view>
+
+    <!-- 横轴切割数量设置 -->
+    <view class="control-group">
+      <text class="label">横轴切割数量 (10-200)</text>
+      <slider min="10" max="200" step="1" value="{{sliceCount}}" show-value block-size="20" activeColor="#6366f1" backgroundColor="#e5e7eb" bindchanging="onSliceCountChange"/>
+    </view>
+
+    <!-- 颜色合并阈值设置 -->
+    <view class="control-group">
+      <text class="label">颜色合并阈值 (0-100)</text>
+      <slider min="0" max="100" step="1" value="{{colorMergeThreshold}}" show-value block-size="20" activeColor="#6366f1" backgroundColor="#e5e7eb" bindchanging="onColorMergeThresholdChange"/>
+    </view>
+
+    <!-- 颜色数量设置 -->
+    <view class="control-group">
+      <text class="label">颜色数量限制</text>
+      <view class="color-count-options">
+        <view class="color-count-item {{colorCount === 8 ? 'active' : ''}}" bindtap="setColorCount" data-count="8">8色</view>
+        <view class="color-count-item {{colorCount === 16 ? 'active' : ''}}" bindtap="setColorCount" data-count="16">16色</view>
+        <view class="color-count-item {{colorCount === 32 ? 'active' : ''}}" bindtap="setColorCount" data-count="32">32色</view>
+        <view class="color-count-item {{colorCount === 64 ? 'active' : ''}}" bindtap="setColorCount" data-count="64">64色</view>
+      </view>
+    </view>
+
+    <!-- 调色板选择 -->
+    <view class="control-group">
+      <text class="label">调色板选择</text>
+      <scroll-view class="palette-scroll" scroll-x>
+        <view class="palette-list">
+          <view class="palette-item {{currentPalette === 'default' ? 'active' : ''}}" bindtap="selectPalette" data-palette="default">
+            <view class="palette-preview default-palette"></view>
+            <text>默认</text>
+          </view>
+          <view class="palette-item {{currentPalette === 'warm' ? 'active' : ''}}" bindtap="selectPalette" data-palette="warm">
+            <view class="palette-preview warm-palette"></view>
+            <text>暖色</text>
+          </view>
+          <view class="palette-item {{currentPalette === 'cool' ? 'active' : ''}}" bindtap="selectPalette" data-palette="cool">
+            <view class="palette-preview cool-palette"></view>
+            <text>冷色</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <!-- 网格线设置 -->
+    <view class="control-group">
+      <view class="switch-item">
+        <text class="label">显示网格线</text>
+        <switch checked="{{showGrid}}" bindchange="onGridChange" color="#6366f1"/>
+      </view>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="button-group">
+      <button type="primary" bindtap="processImage">生成底稿</button>
+      <button type="default" bindtap="saveImage" wx:if="{{processedImagePath}}">保存图纸</button>
+    </view>
+  </view>
+
+  <!-- 处理结果预览 -->
+  <view class="result-preview" wx:if="{{processedImagePath}}">
+    <view class="preview-header">
+      <text class="preview-title">处理结果</text>
+    </view>
+    <view class="preview-item">
+      <image src="{{processedImagePath}}" 
+             mode="aspectFit" 
+             class="preview-image" 
+             bindtap="previewImage"
+             show-menu-by-longpress="{{true}}">
+      </image>
+      <text class="preview-hint">点击可放大查看，长按可保存或分享</text>
+    </view>
+
+    <!-- 颜色统计信息 -->
+    <view class="color-stats">
+      <view class="stats-header">
+        <text class="stats-title">颜色统计</text>
+        <text class="stats-total">总计: {{totalBeads}}颗</text>
+      </view>
+      <scroll-view class="color-list-scroll" scroll-y enable-flex>
+        <view class="color-list">
+          <block wx:for="{{colorStats}}" wx:key="color">
+            <view class="color-stat-item {{filteredColors.includes(item.color) ? 'filtered' : ''}}" 
+                  bindtap="onColorStatClick" 
+                  data-color="{{item.color}}">
+              <view class="color-box" style="background-color: {{item.color}}"></view>
+              <text class="color-code">{{item.index}}</text>
+              <text class="color-count">{{item.count}}颗</text>
+            </view>
+          </block>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <!-- 保存图纸设置浮窗 -->
+  <view class="modal {{showSaveModal ? 'show' : ''}}" catchtouchmove="preventTouchMove">
+    <view class="modal-content">
+      <view class="modal-header">
+        <text class="modal-title">下载图纸设置</text>
+        <view class="modal-close" bindtap="closeSaveModal">
+          <text class="iconfont icon-close"></text>
+        </view>
+      </view>
+
+      <view class="modal-body">
+        <!-- 显示网格线设置 -->
+        <view class="setting-item">
+          <text class="setting-label">显示网格线</text>
+          <switch checked="{{saveWithGrid}}" bindchange="onSaveGridChange" color="#6366f1"/>
+        </view>
+
+        <!-- 网格线间隔设置 -->
+        <view class="setting-item {{!saveWithGrid ? 'disabled' : ''}}">
+          <text class="setting-label">网格线间隔 (每 N 格画一条线)</text>
+          <slider min="1" max="20" value="{{gridInterval}}" show-value 
+                 disabled="{{!saveWithGrid}}"
+                 bindchange="onGridIntervalChange"
+                 activeColor="#6366f1" 
+                 backgroundColor="#e5e7eb"/>
+        </view>
+
+        <!-- 网格线颜色选择 -->
+        <view class="setting-item {{!saveWithGrid ? 'disabled' : ''}}">
+          <text class="setting-label">网格线颜色</text>
+          <view class="color-options">
+            <view class="color-item {{gridColor === color ? 'active' : ''}}" 
+                  wx:for="{{gridColors}}" 
+                  wx:key="index" 
+                  wx:for-item="color"
+                  data-color="{{color}}"
+                  style="background-color: {{color}}"
+                  bindtap="onGridColorSelect">
+            </view>
+          </view>
+        </view>
+
+        <!-- 显示坐标数字 -->
+        <view class="setting-item">
+          <text class="setting-label">显示坐标数字</text>
+          <switch checked="{{showCoordinates}}" bindchange="onShowCoordinatesChange" color="#6366f1"/>
+        </view>
+
+        <!-- 包含色号统计 -->
+        <view class="setting-item">
+          <text class="setting-label">包含色号统计</text>
+          <switch checked="{{includeColorStats}}" bindchange="onIncludeStatsChange" color="#6366f1"/>
+        </view>
+      </view>
+
+      <view class="modal-footer">
+        <button class="btn-cancel" bindtap="closeSaveModal">取消</button>
+        <button class="btn-confirm" bindtap="confirmSave">下载图纸</button>
+      </view>
+    </view>
+  </view>
+</view>

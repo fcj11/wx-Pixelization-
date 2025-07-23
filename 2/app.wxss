@@ -1,0 +1,43 @@
+/**app.wxss**/
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 200rpx 0;
+  box-sizing: border-box;
+} 
+
+/**
+ * 全局样式表
+ */
+
+/* 引入图标字体 */
+@font-face {
+  font-family: "iconfont";
+  src: url('data:font/woff2;charset=utf-8;base64,d09GMgABAAAAAALkAAsAAAAABqQAAAKXAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHFQGYACDHAqBHIEfATYCJAMQCwoABCAFhGcHSRvDBhHVk71kPw7jtvQKNqvZ7IYmHh7/fvQ759773j8rWYkGj+5JNEiQSCKRDJFIEEqWzvTs/89l+mLahDbP87lcv1YW0HZQwQkUcHSCApZ2KQj3zL/5P4cZl0kDyXc2l6hFtTg6DzAOKKAxBkYJJJA3jF3gEp4m0DZrRHJyfWsHmwr2VSBu+/EjzFLIVWihqagrDiziFVRN0zN9Ai/h9+MfU2GTVGb2xrXbqS7Y+Sl8VjMe/48IBAh0OIMMy0AFuDg0nRMVxqnQNqsw9lUFn1V5+P9/ICuy1db+8YiEqmz0JuBEyuSnUEhqwU9NISW1qGpm4AW84G3VtJH+Ntvj9R+bFtfX2cVFxeVVfnldXl5l3f7tIXt5kV0eNtXXxWVxcZnbLXbH7dYXxe3t/PxmYb9/1d1eLXbXF739q8X+cLg7v1nsry8e+v3NtZX/nP7XlYXvPt2/nb6+XvxYDXqASqAvGwA+FydA5O8KyPzFjkZ+YHPxf3EKgE/Fp0L/Mz+Qwc8KGmD+K7UEYC75rGYkqM2rdlNJUHixZjGGtm0p/Lh7aCeENjVRQ9I0CVnTNLLClqGqYwVqmtbRtmTj7o4BIkWpYckQQOh3h6TXG2T97sgK+4iqcX+o6Q8JbSeRdmLHFMGckUJGUYH6gHnCSuXiRhXzGXWvqSR1KcknlHmVQ6LKjDrxhj3iGjPWFKEgp3CC52AYOjgO5+AUOEeapkpZr1kir9cUUbmYEGOIFMgoUgHqBYwnWFLx/Y0U4zNS5zUqkd6+JHkJyXipcTGVMcbYod6K9ZTLrGVMIRKIQ3ACHgbGQAfWBXEUcBzSR6OGUnV1MZLo9TWi+/sOaLNvsSocGXbVaWpRjgAA') format('woff2');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-add:before {
+  content: "\e6df";
+}
+
+/* 全局样式 */
+page {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Helvetica,
+    Segoe UI, Arial, Roboto, 'PingFang SC', 'miui', 'Hiragino Sans GB', 'Microsoft Yahei',
+    sans-serif;
+}
+
+button {
+  font-weight: normal;
+} 
